@@ -23,11 +23,14 @@ public class ScenePanel : MonoBehaviour
     public Color imaglessColor;
 
     public int index = -1;
-    private AudioManagement manager;
+    public AudioManagement manager { get; private set; }
     private int channelsPlaying;
 
     public float volume;
     private int panelState = 0; // 0->idle ; 1->FadeIn ; 2->Playing ; 3->FadeOut
+
+    public List<SceneLayerInterface> stingerLayers { get; private set; }
+    private double stingerEndTime;
 
     public void OnSceneButtonClick()
     {
@@ -68,7 +71,7 @@ public class ScenePanel : MonoBehaviour
         layers = new List<SceneLayerInterface>();
         for (int i = 0; i < scene.layers.Count; i++)
         {
-            layers.Add(new SceneLayerInterface(this, scene.layers[i]));
+            layers.Add(new SceneLayerInterface(this, scene.layers[i], i));
         }
 
         text.text = scene.sceneName;
@@ -99,13 +102,34 @@ public class ScenePanel : MonoBehaviour
         }
     }
 
+    public void StartStopClick(int layerIndex)
+    {
+        if (layerIndex >= 0 && layerIndex < layers.Count)
+        {
+            layers[layerIndex].StartStopClick();
+        }
+    }
+
     private void playScene()
     {
+        var map = new Dictionary<int, List<SceneLayerInterface>>();
+
+        for (int i = 0; i < 3; i++)
+        {
+            map.Add(i, new List<SceneLayerInterface>());
+        }
+        stingerLayers = map[2];
+
         manager = Instantiate(AudioManagementPrefab, UIManager.instance.SideViewHolder.transform).GetComponent<AudioManagement>();
         manager.Initialize(this, scene.fadeInTime + .1f);
         volume = scene.initialVolume;
 
         foreach (var layer in layers)
+        {
+            map[layer.layer.layerType].Add(layer);
+        }
+
+        foreach (var layer in map[0])
         {
             layer.playLayer();
             channelsPlaying++;
@@ -115,6 +139,16 @@ public class ScenePanel : MonoBehaviour
 
     private void stopScene()
     {
+        double totalTime = 0;
+
+        foreach (var layer in stingerLayers)
+        {
+            var time = layer.playLayer();
+            if (time > totalTime) totalTime = time;
+        }
+
+        stingerEndTime = AudioSettings.dspTime + totalTime;
+
         StartCoroutine(FadeOut(scene.fadeOutTime));
     }
 
@@ -154,8 +188,10 @@ public class ScenePanel : MonoBehaviour
         }
     }
 
-    IEnumerator FadeOut(float time)
+    IEnumerator FadeOut(float time, float delay = 0)
     {
+        if (delay > 0) yield return new WaitForSeconds(delay);
+
         manager.sceneVolumeSlider.interactable = false;
         float totalTime = time;
         float originalVolume = volume;
@@ -174,6 +210,8 @@ public class ScenePanel : MonoBehaviour
 
             yield return null;
         }
+
+        while (stingerEndTime > AudioSettings.dspTime) yield return null;
 
         postRoutineStop();
     }
@@ -241,18 +279,25 @@ public class ScenePanel : MonoBehaviour
 
 public class SceneLayerInterface
 {
+    private int layerIndex;
+    private bool playing;
     public float volume;
     public LayerObject layer;
 
     public AudioClip[] audioList;
-    public AudioSource source;
+    public AudioSource[] sources;
+    private bool sourceToggle;
 
     private ScenePanel scene;
 
     private int sequencePlaying;
 
-    public SceneLayerInterface(ScenePanel scene, LayerObject o)
+    private Coroutine volumeUpDownCoroutine;
+    private AudioManagementLayer manager;
+
+    public SceneLayerInterface(ScenePanel scene, LayerObject o, int layerIndex)
     {
+        this.layerIndex = layerIndex;
         this.scene = scene;
         this.volume = o.initialVolume;
         this.layer = o;
@@ -265,41 +310,72 @@ public class SceneLayerInterface
             else
             {
                 scene.StartCoroutine(DownloadSound(o.sequences[i].soundPath, i));
-
             }
         }
 
         sequencePlaying = -1;
     }
 
-    public void playLayer()
+    private AudioManagementLayer GetManager()
     {
+        if (manager == null)
+        {
+            manager = scene.manager.layers[layerIndex];
+        }
+        return manager;
+    }
+
+    public double playLayer(double time = -1)
+    {
+        playing = true;
+        if (time < 0) time = AudioSettings.dspTime;
         if (layer.sequences.Count < 1)
         {
             scene.channelFinished();
-            return;
+            return 0;
         }
-        if (source == null)
+        if (sources == null)
         {
-            source = scene.gameObject.AddComponent(typeof(AudioSource)) as AudioSource;
-            source.outputAudioMixerGroup = UIManager.instance.mixerGroup;
-            source.playOnAwake = false;
-            source.loop = (layer.loopState == 1 || ((layer.loopState == 0 || layer.loopState == 3) && layer.sequences.Count == 1)) ? true : false;
+            sources = new AudioSource[2];
+            for (int i = 0; i < 2; i++)
+            {
+                sources[i] = scene.gameObject.AddComponent(typeof(AudioSource)) as AudioSource;
+                sources[i].outputAudioMixerGroup = UIManager.instance.mixerGroup;
+                sources[i].playOnAwake = false;
+            }
+
+            sources[0].loop = layer.layerType != 2 && (layer.loopState == 1 || ((layer.loopState == 0 || layer.loopState == 3 || layer.loopState == 4) && layer.sequences.Count == 1)) ? true : false;
+            sources[1].loop = false;
         }
 
         setNextClipIndex();
         if (sequencePlaying != -1)
         {
             setVolume(layer.initialVolume);
-            if (audioList[sequencePlaying] != null) source.clip = audioList[sequencePlaying];
-            source.Play();
+            if (GetManager() != null) UpdateVolumeSlider();
+            int i = sourceToggle ? 1 : 0;
+            if (audioList[sequencePlaying] != null) sources[i].clip = audioList[sequencePlaying];
+            sources[i].PlayScheduled(time);
+            sourceToggle = !sourceToggle;
+
+            if (layer.layerType == 2)
+            {
+                return ((double)audioList[sequencePlaying].samples / audioList[sequencePlaying].frequency);
+            }
         }
+        return 0;
     }
 
     public void stopLayer()
     {
-        if (source != null) source.Stop();
+        if (sources != null)
+        {
+            sources[0].Stop();
+            sources[1].Stop();
+        }
+        playing = false;
         sequencePlaying = -1;
+        sourceToggle = false;
     }
 
     public float getVolume()
@@ -314,59 +390,112 @@ public class SceneLayerInterface
         return r;
     }
 
-    public void setVolume(float v)
+    public void setVolume(float v, bool modifiedInCoroutine = false)
     {
+        if (!modifiedInCoroutine && volumeUpDownCoroutine != null && Mathf.Abs(((int)(volume * 100)) / 100f - v) > .02f)
+        {
+            scene.StopCoroutine(volumeUpDownCoroutine);
+            GetManager().silencing = false;
+        }
+
         volume = v;
-        updateVolume();
+        updateVolume(true);
     }
 
-    public void updateVolume()
+    public void StartStopClick()
     {
-        if (source != null) source.volume = getVolume();
+        if (volumeUpDownCoroutine != null)
+        {
+            scene.StopCoroutine(volumeUpDownCoroutine);
+            if (volume > 0 && !GetManager().silencing)
+            {
+                GetManager().silencing = true;
+                volumeUpDownCoroutine = scene.StartCoroutine(TurnVolumeOnOrOff(0));
+            }
+            else
+            {
+                GetManager().silencing = false;
+                volumeUpDownCoroutine = scene.StartCoroutine(TurnVolumeOnOrOff(layer.initialVolume));
+            }
+        }
+        else
+        {
+            if (volume <= 0) volumeUpDownCoroutine = scene.StartCoroutine(TurnVolumeOnOrOff(layer.initialVolume != 0 ? layer.initialVolume : 1));
+            else volumeUpDownCoroutine = scene.StartCoroutine(TurnVolumeOnOrOff(0));
+        }
+    }
+
+    public void updateVolume(bool comeFromInside = false)
+    { 
+        if (sources != null && (layer.layerType != 2 || comeFromInside))
+        {
+            sources[0].volume = getVolume();
+            sources[1].volume = getVolume();
+        }
     }
 
     private void setNextClipIndex()
     {
         if (layer.sequences.Count == 0) scene.channelFinished();
 
-        switch (layer.loopState)
+        if (layer.layerType == 2)
         {
-            case 0:
-                sequencePlaying = randomWithWeight();
-                if (audioList.Length > 1)
-                {
-                    float timer = layer.sequences[sequencePlaying].silenceTime;
-                    if (audioList[sequencePlaying] != null) timer = audioList[sequencePlaying].length + 0.05f;
-                    scene.StartCoroutine(changeOnFinish(timer));
-                }
-                break;
-            case 1:
-                sequencePlaying = randomWithWeight();
-                break;
-            case 2:
-                sequencePlaying = randomWithWeight();
-                if (audioList[sequencePlaying] == null) scene.channelFinished();
-                else
-                {
-                    scene.StartCoroutine(stopOnFinish(audioList[sequencePlaying].length));
-                }
-                break;
-            case 3:
-                sequencePlaying++;
-                if (sequencePlaying >= layer.sequences.Count)
-                {
-                    sequencePlaying = 0;
-                }
-                if (audioList.Length > 1)
-                {
-                    float timer = layer.sequences[sequencePlaying].silenceTime;
-                    if (audioList[sequencePlaying] != null) timer = audioList[sequencePlaying].length + 0.05f;
-                    scene.StartCoroutine(changeOnFinish(timer));
-                }
-                break;
-            default:
-                Debug.LogError("Invalid layer LoopState");
-                break;
+            sequencePlaying = randomWithWeight();
+        }
+        else
+        {
+            switch (layer.loopState)
+            {
+                case 0:
+                    sequencePlaying = randomWithWeight();
+                    if (audioList.Length > 1)
+                    {
+                        float timer = layer.sequences[sequencePlaying].silenceTime;
+                        if (audioList[sequencePlaying] != null) timer = audioList[sequencePlaying].length + 0.05f;
+                        scene.StartCoroutine(changeOnFinish(timer));
+                    }
+                    break;
+                case 1:
+                    sequencePlaying = randomWithWeight();
+                    break;
+                case 2:
+                    sequencePlaying = randomWithWeight();
+                    if (audioList[sequencePlaying] == null) scene.channelFinished();
+                    else
+                    {
+                        scene.StartCoroutine(stopOnFinish(audioList[sequencePlaying].length));
+                    }
+                    break;
+                case 3:
+                    sequencePlaying++;
+                    if (sequencePlaying >= layer.sequences.Count)
+                    {
+                        sequencePlaying = 0;
+                    }
+                    if (audioList.Length > 1)
+                    {
+                        double timer = layer.sequences[sequencePlaying].silenceTime + AudioSettings.dspTime;
+                        if (audioList[sequencePlaying] != null) timer = ((double)audioList[sequencePlaying].samples / audioList[sequencePlaying].frequency) + AudioSettings.dspTime;
+                        scene.StartCoroutine(changeOnFinish(timer));
+                    }
+                    break;
+                case 4:
+                    sequencePlaying++;
+                    if (sequencePlaying >= layer.sequences.Count - 1)
+                    {
+                        sources[sourceToggle ? 1 : 0].loop = true;
+                    }
+                    else
+                    {
+                        double time = layer.sequences[sequencePlaying].silenceTime + AudioSettings.dspTime;
+                        if (audioList[sequencePlaying] != null) time = ((double)audioList[sequencePlaying].samples / audioList[sequencePlaying].frequency) + AudioSettings.dspTime;
+                        scene.StartCoroutine(changeOnFinish(time));
+                    }
+                    break;
+                default:
+                    Debug.LogError("Invalid layer LoopState");
+                    break;
+            }
         }
     }
 
@@ -402,21 +531,19 @@ public class SceneLayerInterface
         }
 
         sequencePlaying = -1;
+        playing = false;
+        sourceToggle = false;
         scene.channelFinished();
     }
 
-    IEnumerator changeOnFinish(float seconds)
+    IEnumerator changeOnFinish(double time)
     {
-        float timer = seconds;
-
-        while (timer > 0)
+        while (playing && AudioSettings.dspTime < time - 1)
         {
             yield return null;
-            if (sequencePlaying == -1) yield break;
-            timer -= Time.deltaTime;
         }
 
-        playLayer();
+        if (playing) playLayer(time);
     }
 
     IEnumerator DownloadSound(string path, int index)
@@ -452,5 +579,38 @@ public class SceneLayerInterface
                 audioList[index] = audioClip;
             }
         }
+    }
+
+    private IEnumerator TurnVolumeOnOrOff(float target)
+    {
+        float originalTime = Time.time;
+        float originalVolume = volume;
+        float endTime = Time.time + 4;
+
+        /*
+        if (scene.scene.fadeOutTime > 0 && (target <= 0 || scene.scene.fadeInTime <= 0)) endTime = Time.time + scene.scene.fadeOutTime;
+        else if (scene.scene.fadeOutTime > 0 && target > 0) endTime = Time.time + scene.scene.fadeInTime;
+        */
+
+        if (target < volume) GetManager().silencing = true;
+
+        while (volume != target)
+        {
+            if (Time.time >= endTime) setVolume(target, true);
+            else 
+            {
+                var val = Mathf.Lerp(originalVolume, target, (Time.time - originalTime) / (endTime - originalTime));
+                setVolume(val, true);
+            }
+            UpdateVolumeSlider();
+            yield return null;
+        }
+
+        GetManager().silencing = false;
+    }
+
+    private void UpdateVolumeSlider()
+    {
+        GetManager().SetSliderPosition(volume * 100);
     }
 }

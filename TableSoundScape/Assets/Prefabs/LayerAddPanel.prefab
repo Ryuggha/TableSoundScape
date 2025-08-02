@@ -215,10 +215,31 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 8988422242233670904, guid: 09930e9d912b7a24e96370a572f42ee9, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 790445315491925278}
   m_SourcePrefab: {fileID: 100100000, guid: 09930e9d912b7a24e96370a572f42ee9, type: 3}
 --- !u!224 &2027829387741836365 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 6345493839753319052, guid: 09930e9d912b7a24e96370a572f42ee9, type: 3}
   m_PrefabInstance: {fileID: 4912289278712489665}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &4077657045553183289 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8988422242233670904, guid: 09930e9d912b7a24e96370a572f42ee9, type: 3}
+  m_PrefabInstance: {fileID: 4912289278712489665}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &790445315491925278
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4077657045553183289}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c699fed63e14064eb988f836ee67cab, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  text: Add a sound layer

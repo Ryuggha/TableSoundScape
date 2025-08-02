@@ -43,7 +43,7 @@ public class SequenceEditor : MonoBehaviour
 
     public void updateLoopState(int loopState) 
     {
-        if (loopState == 3)
+        if (loopState == 3 || loopState == 4)
         {
             OrderPanel.SetActive(true);
             WeightPanel.SetActive(false);

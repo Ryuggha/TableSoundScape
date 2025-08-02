@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Audio;
+using System.Globalization;
 
 public class UIManager : MonoBehaviour
 {
@@ -37,6 +38,9 @@ public class UIManager : MonoBehaviour
         {
             Destroy(gameObject);
         }
+
+        CultureInfo.CurrentCulture = new CultureInfo("en-US");
+        CultureInfo.CurrentUICulture = new CultureInfo("en-US");
     }
 
     private void Start()
