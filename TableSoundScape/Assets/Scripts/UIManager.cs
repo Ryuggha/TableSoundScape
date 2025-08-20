@@ -15,14 +15,16 @@ public class UIManager : MonoBehaviour
 
     [SerializeField] public GameObject SideViewHolder;
     [SerializeField] private GameObject GridViewContentHolder;
+    [SerializeField] private GameObject unsortedContentHolder;
     [SerializeField] private Button SaveSceneButton;
     [SerializeField] private Button SaveSceneAsButton;
     [SerializeField] private Slider masterVolumeSlider;
 
     [SerializeField] private SceneEditor sceneEditor;
+    [SerializeField] private CreateFolderPanelManager folderEditor;
 
     [SerializeField] private GameObject scenePanelPrefab;
-
+    [SerializeField] private GameObject folderPrefab;
 
     private List<SceneContainer> sceneContainers;
 
@@ -46,7 +48,7 @@ public class UIManager : MonoBehaviour
     private void Start()
     {
         sceneContainers = new List<SceneContainer>();
-        sceneContainers.Add(new SceneContainer(""));
+        sceneContainers.Add(new SceneContainer());
 
         setMasterVolume(66);
 
@@ -87,11 +89,17 @@ public class UIManager : MonoBehaviour
 
     public void addScene(SceneObject scene)
     {
-        var o = Instantiate(scenePanelPrefab, GridViewContentHolder.transform);
+        var o = Instantiate(scenePanelPrefab, unsortedContentHolder.transform);
         var scenePanel = o.GetComponent<ScenePanel>();
         scenePanel.scene = scene;
         scenePanel.ButtonUpdate();
         sceneContainers[0].scenes.Add(scenePanel);
+    }
+
+    public void OnAddFolder()
+    {
+        folderEditor.gameObject.SetActive(true);
+        folderEditor.Initialize(this);
     }
 
     public void deleteScene(ScenePanel scene)
@@ -105,6 +113,24 @@ public class UIManager : MonoBehaviour
                 return;
             }
         }
+    }
+
+    public void AddFolder(string n, Color c)
+    {
+        var folderObj = Instantiate(folderPrefab);
+        folderObj.transform.SetParent(GridViewContentHolder.transform, false);
+        int childCount = GridViewContentHolder.transform.childCount;
+        if (childCount > 1)
+        {
+            folderObj.transform.SetSiblingIndex(childCount - 2);
+        }
+        else
+        {
+            folderObj.transform.SetSiblingIndex(0);
+        }
+
+        FolderController folder = folderObj.GetComponent<FolderController>();
+        folder.Initialize(n, c);
     }
 
     public void RefreshLayoutGroupsImmediateAndRecursive()
@@ -133,15 +159,24 @@ public class SceneContainer
     public float g;
     public float b;
     public List<ScenePanel> scenes;
+    public FolderController folder;
 
-    public SceneContainer(string name, float r, float g, float b)
+    public SceneContainer(string name, FolderController folder, float r, float g, float b)
     {
         this.containerName = name;
+        this.folder = folder;
         this.r = r;
         this.g = g;
         this.b = b;
         scenes = new List<ScenePanel>();
     }
 
-    public SceneContainer(string name) : this(name, 0.5843138f, 0.5843138f, 0.5843138f) {}
+    public SceneContainer()
+    {
+        this.containerName = "Default";
+        scenes = new List<ScenePanel>();
+        folder = null;
+    }
+
+    public SceneContainer(string name, FolderController folder) : this(name, folder, 0.5843138f, 0.5843138f, 0.5843138f) {}
 }
