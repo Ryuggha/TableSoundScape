@@ -2348,7 +2348,7 @@ GameObject:
   - component: {fileID: 676826777}
   m_Layer: 5
   m_Name: Scroll View
-  m_TagString: Untagged
+  m_TagString: UnsortedFolder
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -3755,18 +3755,18 @@ PrefabInstance:
     - target: {fileID: 9025196912512347966, guid: 09930e9d912b7a24e96370a572f42ee9, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
-      objectReference: {fileID: 1280745535}
+      objectReference: {fileID: 1280745537}
     - target: {fileID: 9025196912512347966, guid: 09930e9d912b7a24e96370a572f42ee9, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
       value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 9025196912512347966, guid: 09930e9d912b7a24e96370a572f42ee9, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: OnLoadSceneClick
+      value: SaveData
       objectReference: {fileID: 0}
     - target: {fileID: 9025196912512347966, guid: 09930e9d912b7a24e96370a572f42ee9, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
-      value: UIManager, Assembly-CSharp
+      value: PersistanceManager, Assembly-CSharp
       objectReference: {fileID: 0}
     - target: {fileID: 9025196912512347966, guid: 09930e9d912b7a24e96370a572f42ee9, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
@@ -3820,6 +3820,7 @@ GameObject:
   - component: {fileID: 1280745534}
   - component: {fileID: 1280745535}
   - component: {fileID: 1280745536}
+  - component: {fileID: 1280745537}
   m_Layer: 0
   m_Name: SceneManager
   m_TagString: Untagged
@@ -3879,6 +3880,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   AutoUnparentOnAwake: 0
+--- !u!114 &1280745537
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1280745533}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a19404663804c784b8f20849dc71d031, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!224 &1285794435 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 6345493839753319052, guid: 09930e9d912b7a24e96370a572f42ee9, type: 3}
@@ -6644,6 +6657,7 @@ GameObject:
   - component: {fileID: 2055504764}
   - component: {fileID: 2055504766}
   - component: {fileID: 2055504765}
+  - component: {fileID: 2055504767}
   m_Layer: 5
   m_Name: Content
   m_TagString: Untagged
@@ -6711,6 +6725,14 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 1
   m_ReverseArrangement: 0
+--- !u!222 &2055504767
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2055504763}
+  m_CullTransparentMesh: 1
 --- !u!1001 &2074731375
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -7126,7 +7148,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4798492378339026710, guid: 739a6b44f780eae43a5e763386398290, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 12.700012
+      value: 12.699951
       objectReference: {fileID: 0}
     - target: {fileID: 4798492378339026710, guid: 739a6b44f780eae43a5e763386398290, type: 3}
       propertyPath: m_AnchoredPosition.y

@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Audio;
 using System.Globalization;
+using System;
 
 public class UIManager : MonoBehaviour
 {
@@ -14,8 +15,8 @@ public class UIManager : MonoBehaviour
     [SerializeField] public AudioMixerGroup mixerGroup;
 
     [SerializeField] public GameObject SideViewHolder;
-    [SerializeField] private GameObject GridViewContentHolder;
-    [SerializeField] private GameObject unsortedContentHolder;
+    [SerializeField] public GameObject GridViewContentHolder;
+    [SerializeField] public GameObject unsortedContentHolder;
     [SerializeField] private Button SaveSceneButton;
     [SerializeField] private Button SaveSceneAsButton;
     [SerializeField] private Slider masterVolumeSlider;
@@ -27,7 +28,7 @@ public class UIManager : MonoBehaviour
     [SerializeField] private GameObject folderPrefab;
 
     private List<SceneContainer> sceneContainers;
-
+    private PersistanceManager persistanceManager;
 
     private void Awake()
     {
@@ -41,6 +42,9 @@ public class UIManager : MonoBehaviour
             Destroy(gameObject);
         }
 
+        Screen.SetResolution(1000, 768, FullScreenMode.Windowed);
+
+        persistanceManager = GetComponent<PersistanceManager>();
         CultureInfo.CurrentCulture = new CultureInfo("en-US");
         CultureInfo.CurrentUICulture = new CultureInfo("en-US");
     }
@@ -72,34 +76,50 @@ public class UIManager : MonoBehaviour
         sceneEditor.InitializeEditScene(scene);
     }
 
+    public void EnableSaveButton()
+    {
+        SaveSceneButton.interactable = true;
+    }
+
     public void OnLoadSceneClick()
     {
-
+        persistanceManager.LoadData();
     }
 
     public void OnSaveSceneClick()
     {
-
+        persistanceManager.SaveData();
     }
 
     public void OnSaveSceneAsClick()
     {
-
+        persistanceManager.SaveDataAs();
     }
 
-    public void addScene(SceneObject scene)
+    public void addScene(SceneObject scene, FolderController controller = null)
     {
         var o = Instantiate(scenePanelPrefab, unsortedContentHolder.transform);
         var scenePanel = o.GetComponent<ScenePanel>();
         scenePanel.scene = scene;
         scenePanel.ButtonUpdate();
         sceneContainers[0].scenes.Add(scenePanel);
+
+        if (controller != null)
+        {
+            scenePanel.transform.SetParent(controller.content.transform, false);
+        }
     }
 
     public void OnAddFolder()
     {
         folderEditor.gameObject.SetActive(true);
-        folderEditor.Initialize(this);
+        folderEditor.Initialize();
+    }
+
+    public void OnEditFolderClick(FolderController controller)
+    {
+        folderEditor.gameObject.SetActive(true);
+        folderEditor.Initialize(controller);
     }
 
     public void deleteScene(ScenePanel scene)
@@ -115,7 +135,7 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    public void AddFolder(string n, Color c)
+    public FolderController AddFolder(string n, Color c)
     {
         var folderObj = Instantiate(folderPrefab);
         folderObj.transform.SetParent(GridViewContentHolder.transform, false);
@@ -131,6 +151,7 @@ public class UIManager : MonoBehaviour
 
         FolderController folder = folderObj.GetComponent<FolderController>();
         folder.Initialize(n, c);
+        return folder;
     }
 
     public void RefreshLayoutGroupsImmediateAndRecursive()
@@ -146,9 +167,19 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    public void changePositionOfScene()
+    internal void ClearAll()
     {
+        var scenes = FindObjectsByType<ScenePanel>(FindObjectsSortMode.None);
+        for (int i = scenes.Length - 1; i >= 0; i--)
+        {
+            Destroy (scenes[i].gameObject);
+        }
 
+        var folders = FindObjectsByType<FolderController>(FindObjectsSortMode.None);
+        for (int i = folders.Length - 1; i >= 0; i--)
+        {
+            Destroy (folders[i].gameObject);
+        }
     }
 }
 

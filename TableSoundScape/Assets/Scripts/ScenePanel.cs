@@ -43,6 +43,11 @@ public class ScenePanel : MonoBehaviour
         UIManager.instance.editScene(this);
     }
 
+    private void OnDestroy()
+    {
+        if (panelState != 0) postRoutineStop();
+    }
+
     private void buttonStateUpdate()
     {
         if (panelState == 0)
