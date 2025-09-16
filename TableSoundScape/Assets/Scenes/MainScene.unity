@@ -3755,18 +3755,18 @@ PrefabInstance:
     - target: {fileID: 9025196912512347966, guid: 09930e9d912b7a24e96370a572f42ee9, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
-      objectReference: {fileID: 1280745537}
+      objectReference: {fileID: 1280745535}
     - target: {fileID: 9025196912512347966, guid: 09930e9d912b7a24e96370a572f42ee9, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
       value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 9025196912512347966, guid: 09930e9d912b7a24e96370a572f42ee9, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: SaveData
+      value: OnSaveSceneClick
       objectReference: {fileID: 0}
     - target: {fileID: 9025196912512347966, guid: 09930e9d912b7a24e96370a572f42ee9, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
-      value: PersistanceManager, Assembly-CSharp
+      value: UIManager, Assembly-CSharp
       objectReference: {fileID: 0}
     - target: {fileID: 9025196912512347966, guid: 09930e9d912b7a24e96370a572f42ee9, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName

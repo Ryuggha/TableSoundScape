@@ -6,6 +6,15 @@ using UnityEngine;
 public class PersistanceManager : MonoBehaviour
 {
     private string filePath = "";
+    
+    public string GetRelativePath()
+    {
+        if (filePath == "") return "";
+
+        int length = filePath.LastIndexOf(Path.DirectorySeparatorChar);
+        if (length == -1) return "";
+        return filePath.Substring(0, length + 0);
+    }
 
     public void SaveData()
     {
@@ -46,6 +55,19 @@ public class PersistanceManager : MonoBehaviour
 
         UIManager.instance.ClearAll();
 
+        foreach (var scene in container.unsorted)
+        {
+            LoadRelativePathOfScene(scene);
+        }
+
+        foreach (var folder in container.folders)
+        {
+            foreach (var scene in folder.scenes)
+            {
+                LoadRelativePathOfScene(scene);
+            }
+        }
+
         foreach (var scene in container.unsorted) { UIManager.instance.addScene(scene); }
         foreach (var folder in container.folders)
         {
@@ -56,7 +78,7 @@ public class PersistanceManager : MonoBehaviour
 
     private void SaveAllData()
     {
-        if (string.IsNullOrEmpty(filePath) || !File.Exists(filePath)) { return; }
+        if (string.IsNullOrEmpty(filePath)) { return; }
         UIManager.instance.EnableSaveButton();
 
         PersistanceContainer container = new PersistanceContainer();
@@ -77,10 +99,50 @@ public class PersistanceManager : MonoBehaviour
             container.folders.Add(folderObject);
         }
 
+        foreach (var scene in container.unsorted)
+        {
+            CheckRelativePathOfScene(scene);
+        }
+
+        foreach (var folder in container.folders)
+        {
+            foreach (var scene in folder.scenes)
+            {
+                CheckRelativePathOfScene(scene);
+            }
+        }
+
         string data = JsonUtility.ToJson(container, true);
         File.WriteAllText(filePath, data);
     }
 
+    private void CheckRelativePathOfScene(SceneObject scene)
+    {
+        foreach (var layer in scene.layers)
+        {
+            foreach (var sequence in layer.sequences)
+            {
+                if (sequence.soundPath.Contains(GetRelativePath()))
+                {
+                    sequence.soundPath = sequence.soundPath.Replace(GetRelativePath(), "*");
+                }
+            }
+        }
+    }
+
+    private void LoadRelativePathOfScene(SceneObject scene)
+    {
+        foreach (var layer in scene.layers)
+        {
+            foreach (var sequence in layer.sequences)
+            {
+                if (sequence.soundPath.StartsWith("*"))
+                {
+                    sequence.soundPath = sequence.soundPath.Replace("*", GetRelativePath());
+                }
+            }
+        }
+    }
 
     [System.Serializable]
     public class PersistanceContainer
