@@ -122,7 +122,7 @@ public class PersistanceManager : MonoBehaviour
         {
             foreach (var sequence in layer.sequences)
             {
-                if (sequence.soundPath.Contains(GetRelativePath()))
+                if (sequence.soundPath != null && sequence.soundPath.Contains(GetRelativePath()))
                 {
                     sequence.soundPath = sequence.soundPath.Replace(GetRelativePath(), "*");
                 }
@@ -136,7 +136,7 @@ public class PersistanceManager : MonoBehaviour
         {
             foreach (var sequence in layer.sequences)
             {
-                if (sequence.soundPath.StartsWith("*"))
+                if (sequence.soundPath != null && sequence.soundPath.StartsWith("*"))
                 {
                     sequence.soundPath = sequence.soundPath.Replace("*", GetRelativePath());
                 }

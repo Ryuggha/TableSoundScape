@@ -20,7 +20,7 @@ public class SceneEditor : MonoBehaviour
 
     private List<LayerEditor> layerEditorList;
 
-    private string sceneImagePath;
+    private string sceneImage;
 
     private bool editMode;
     private ScenePanel scene;
@@ -46,7 +46,7 @@ public class SceneEditor : MonoBehaviour
         FadeInInputField.text = "";
         FadeOutInputField.text = "4";
         volumeSlider.value = 50;
-        sceneImagePath = "";
+        sceneImage = "";
 
         for (int i = layerEditorList.Count - 1; i >= 0; i--) {
             layerEditorList[i].OnDeleteClick();
@@ -70,7 +70,7 @@ public class SceneEditor : MonoBehaviour
         FadeInInputField.text = editedScene.fadeInTime.ToString();
         FadeOutInputField.text = editedScene.fadeOutTime.ToString();
         volumeSlider.value = Mathf.FloorToInt(editedScene.initialVolume * 100);
-        sceneImagePath = editedScene.imagePath;
+        sceneImage = editedScene.image;
 
         for (int i = 0; i < editedScene.layers.Count; i++)
         {
@@ -90,10 +90,17 @@ public class SceneEditor : MonoBehaviour
         browserProperties.filter = "Image files (*.jpg, *.jpeg, *.jpe, *.jfif, *.png) | *.jpg; *.jpeg; *.jpe; *.jfif; *.png";
         browserProperties.filterIndex = 0;
 
+        var sceneImagePath = "";
         new FileBrowser().OpenFileBrowser(browserProperties, path =>
         {
             sceneImagePath = path;
         });
+
+        if (sceneImagePath != "")
+        {
+            sceneImage = ImageManager.EncodeToJson(ImageManager.LoadTextureFromFile(sceneImagePath));
+        }
+        else sceneImage = "";
     }
 
     public void OnDeleteClick()
@@ -160,7 +167,7 @@ public class SceneEditor : MonoBehaviour
             volumeSlider.value / 100f,
             fin,
             fout,
-            sceneImagePath,
+            sceneImage,
             layers
         );
     }
@@ -183,7 +190,7 @@ public class SceneEditor : MonoBehaviour
         editedScene.initialVolume = volumeSlider.value / 100f;
         editedScene.fadeInTime = fin;
         editedScene.fadeOutTime = fout;
-        editedScene.imagePath = sceneImagePath;
+        editedScene.image = sceneImage;
         editedScene.layers = layers;
     }
 

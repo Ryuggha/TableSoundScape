@@ -8,17 +8,17 @@ public class SceneObject
     public float initialVolume;
     public float fadeInTime;
     public float fadeOutTime;
-    public string imagePath;
-
     public List<LayerObject> layers;
 
-    public SceneObject(string sceneName, float initialVolume, float fadeInTime, float fadeOutTime, string imagePath, List<LayerObject> layers)
+    public string image;
+
+    public SceneObject(string sceneName, float initialVolume, float fadeInTime, float fadeOutTime, string image, List<LayerObject> layers)
     {
         this.sceneName = sceneName;
         this.initialVolume = initialVolume;
         this.fadeInTime = fadeInTime;
         this.fadeOutTime = fadeOutTime;
-        this.imagePath = imagePath;
+        this.image = image;
 
         this.layers = layers;
     }

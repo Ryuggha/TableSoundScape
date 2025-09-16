@@ -80,14 +80,15 @@ public class ScenePanel : MonoBehaviour
         }
 
         text.text = scene.sceneName;
-        if (scene.imagePath == "")
+        if (scene.image == "")
         {
             imageHolder.color = imaglessColor;
         }
         else
         {
             imageHolder.color = Color.white;
-            StartCoroutine(DownloadImage(scene.imagePath));
+            imageHolder.sprite = ImageManager.DecodeFromJson(scene.image);
+            //StartCoroutine(DownloadImage(scene.imagePath));
         } 
     }
 
@@ -258,28 +259,28 @@ public class ScenePanel : MonoBehaviour
         }
     }
 
-    IEnumerator DownloadImage(string path)
-    {
-        using (UnityWebRequest request = UnityWebRequestTexture.GetTexture("file://" + path))
-        {
-            request.SendWebRequest();
+    //IEnumerator DownloadImage(string path)
+    //{
+    //    using (UnityWebRequest request = UnityWebRequestTexture.GetTexture("file://" + path))
+    //    {
+    //        request.SendWebRequest();
 
-            while (!request.isDone)
-            {
-                yield return null;
-            }
+    //        while (!request.isDone)
+    //        {
+    //            yield return null;
+    //        }
 
-            if (request.result == UnityWebRequest.Result.ConnectionError || request.result == UnityWebRequest.Result.ProtocolError)
-            {
-                Debug.LogWarning(request.result.ToString());
-            }
-            else
-            {
-                var tex = DownloadHandlerTexture.GetContent(request);
-                imageHolder.sprite = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(tex.width / 2, tex.height / 2));
-            }
-        }
-    }
+    //        if (request.result == UnityWebRequest.Result.ConnectionError || request.result == UnityWebRequest.Result.ProtocolError)
+    //        {
+    //            Debug.LogWarning(request.result.ToString());
+    //        }
+    //        else
+    //        {
+    //            var tex = DownloadHandlerTexture.GetContent(request);
+    //              = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(tex.width / 2, tex.height / 2));
+    //        }
+    //    }
+    //}
 }
 
 public class SceneLayerInterface
