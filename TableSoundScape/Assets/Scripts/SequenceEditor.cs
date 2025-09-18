@@ -15,6 +15,7 @@ public class SequenceEditor : MonoBehaviour
     [SerializeField] private GameObject EmptyTimeSliderPanel;
     [SerializeField] private GameObject WeightPanel;
     [SerializeField] private GameObject OrderPanel;
+    [SerializeField] private Tooltip pathTooltip;
 
     private LayerEditor layer;
 
@@ -83,6 +84,7 @@ public class SequenceEditor : MonoBehaviour
         soundPath = s;
         var split = soundPath.Split("\\");
         audioPath.text = split[split.Length - 1];
+        pathTooltip.SetTooltipText(split[split.Length - 1]);
         VolumeSliderPanel.SetActive(true);
         EmptyTimeSliderPanel.SetActive(false);
     }

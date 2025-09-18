@@ -80,7 +80,7 @@ public class ScenePanel : MonoBehaviour
         }
 
         text.text = scene.sceneName;
-        if (scene.image == "")
+        if (scene.image == null || scene.image == "")
         {
             imageHolder.color = imaglessColor;
         }

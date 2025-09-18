@@ -42,8 +42,6 @@ public class UIManager : MonoBehaviour
             Destroy(gameObject);
         }
 
-        Screen.SetResolution(1000, 768, FullScreenMode.Windowed);
-
         persistanceManager = GetComponent<PersistanceManager>();
         CultureInfo.CurrentCulture = new CultureInfo("en-US");
         CultureInfo.CurrentUICulture = new CultureInfo("en-US");
